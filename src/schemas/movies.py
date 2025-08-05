@@ -1,34 +1,12 @@
-# Write your code here
 import datetime
 from typing import List, Optional
 
 from pydantic import BaseModel
 
-from database.models import MovieStatusEnum, CountryModel, GenreModel, ActorModel, LanguageModel
+from database.models import MovieStatusEnum
 
 
-class MovieBase(BaseModel):
-    name: str
-    date: datetime.date
-    score: float
-    overview: str
-
-
-class MovieCreate(MovieBase):
-    name: str
-    date: datetime.date
-    score: float
-    overview: str
-    budget: float
-    revenue: float
-
-
-class MovieUpdate(MovieCreate):
-    id: int
-
-
-class MovieDetailSchema(MovieBase):
-    id: int
+class MovieBaseSchema(BaseModel):
     name: str
     date: datetime.date
     score: float
@@ -36,13 +14,34 @@ class MovieDetailSchema(MovieBase):
     status: MovieStatusEnum
     budget: float
     revenue: float
+    country_id: Optional[int] = None
+
+
+class MovieCreateSchema(MovieBaseSchema):
+    pass
+
+
+# class MovieUpdate(MovieCreate):
+#     id: int
+
+
+class MovieDetailSchema(MovieBaseSchema):
+    id: int
+    # country: CountryModel
+    # genres: List[GenreModel]
+    # actors: List[ActorModel]
+    # languages: List[LanguageModel]
 
     class Config:
         from_attributes = True
 
 
-class MovieListResponseSchema(MovieBase):
+class MovieListResponseSchema(BaseModel):
     id: int
+    name: str
+    date: datetime.date
+    score: float
+    overview: str
 
     class Config:
         from_attributes = True
@@ -60,7 +59,7 @@ class MoviePaginatedResponseSchema(BaseModel):
     }
 
 
-class MovieListItemSchema(MovieBase):
+class MovieListItemSchema(MovieBaseSchema):
     id: int
 
     class Config:

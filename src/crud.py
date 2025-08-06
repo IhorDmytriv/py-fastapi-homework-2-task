@@ -4,7 +4,7 @@ from sqlalchemy import select, func
 
 from database import get_db, MovieModel
 from schemas import MovieListResponseSchema
-from schemas.movies import MoviePaginatedResponseSchema
+from schemas.movies import MovieListItemSchema
 
 
 # async def create_film(db: AsyncSession, film: FilmCreate):
@@ -38,7 +38,7 @@ async def get_movies(
 
     result = await db.execute(select(MovieModel).offset(offset).limit(per_page).order_by(MovieModel.id.desc()))
     movies = result.scalars().all()
-    movie_schemas = [MovieListResponseSchema.model_validate(movie) for movie in movies]
+    movie_schemas = [MovieListItemSchema.model_validate(movie) for movie in movies]
 
     full_path = request.url.path
 
@@ -51,7 +51,7 @@ async def get_movies(
     prev_page = f"{base_url}{query_template.format(page - 1)}" if page > 1 else None
     next_page = f"{base_url}{query_template.format(page + 1)}" if page < total_pages else None
 
-    return MoviePaginatedResponseSchema(
+    return MovieListResponseSchema(
         movies=movie_schemas,
         prev_page=prev_page,
         next_page=next_page,

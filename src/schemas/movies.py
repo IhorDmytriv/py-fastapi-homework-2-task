@@ -1,20 +1,32 @@
 import datetime
 from typing import List, Optional
 
-from pydantic import BaseModel
+from dateutil.relativedelta import relativedelta
+from pydantic import BaseModel, Field, constr, field_validator
 
 from database.models import MovieStatusEnum
 
 
 class MovieBaseSchema(BaseModel):
-    name: str
-    date: datetime.date
-    score: float
-    overview: str
-    status: MovieStatusEnum
-    budget: float
-    revenue: float
-    country_id: Optional[int] = None
+    name: str = Field(max_length=255)
+    date: datetime.date = Field(le=datetime.date.today() + datetime.timedelta(days=364))
+    score: Optional[float] = Field(ge=0, le=100)
+    overview: Optional[str]
+    status: Optional[MovieStatusEnum]
+    budget: Optional[float] = Field(ge=0)
+    revenue: Optional[float] = Field(ge=0)
+    country: Optional[constr(min_length=3, max_length=3, to_upper=True)]
+    genres: Optional[List[str]]
+    actors: Optional[List[str]]
+    languages: Optional[List[str]]
+
+    @field_validator("date")
+    @classmethod
+    def validate_date(cls, value: datetime.date):
+        today = datetime.date.today()
+        if value > today + relativedelta(years=1):
+            raise ValueError("Date cannot be more than 1 year from today")
+        return value
 
 
 class MovieCreateSchema(MovieBaseSchema):
@@ -36,31 +48,23 @@ class MovieDetailSchema(MovieBaseSchema):
         from_attributes = True
 
 
-class MovieListResponseSchema(BaseModel):
+class MovieListItemSchema(BaseModel):
     id: int
     name: str
     date: datetime.date
-    score: float
+    score: float = Field(ge=0, le=100)
     overview: str
 
     class Config:
         from_attributes = True
 
 
-class MoviePaginatedResponseSchema(BaseModel):
-    movies: List[MovieListResponseSchema]
+class MovieListResponseSchema(BaseModel):
+    movies: List[MovieListItemSchema]
     prev_page: Optional[str]
     next_page: Optional[str]
     total_pages: int
     total_items: int
-
-    model_config = {
-        "from_attributes": True,
-    }
-
-
-class MovieListItemSchema(MovieBaseSchema):
-    id: int
 
     class Config:
         from_attributes = True

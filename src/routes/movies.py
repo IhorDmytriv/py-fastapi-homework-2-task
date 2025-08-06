@@ -2,12 +2,12 @@ from fastapi import APIRouter, HTTPException, Request
 
 from crud import get_movies
 from routes.dependencies import PaginationDep, SessionDep
-from schemas.movies import MoviePaginatedResponseSchema
+from schemas.movies import MovieListResponseSchema
 
 router = APIRouter()
 
 
-@router.get("/movies/", response_model=MoviePaginatedResponseSchema)
+@router.get("/movies/", response_model=MovieListResponseSchema)
 async def list_films(
         request: Request,
         params: PaginationDep,

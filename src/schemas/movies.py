@@ -5,6 +5,10 @@ from dateutil.relativedelta import relativedelta
 from pydantic import BaseModel, Field, constr, field_validator
 
 from database.models import MovieStatusEnum
+from schemas.actors import ActorRetrieveSchema
+from schemas.countries import CountryRetrieveSchema
+from schemas.genres import GenreRetrieveSchema
+from schemas.languages import LanguageRetrieveSchema
 
 
 class MovieBaseSchema(BaseModel):
@@ -39,10 +43,10 @@ class MovieCreateSchema(MovieBaseSchema):
 
 class MovieDetailSchema(MovieBaseSchema):
     id: int
-    # country: CountryModel
-    # genres: List[GenreModel]
-    # actors: List[ActorModel]
-    # languages: List[LanguageModel]
+    country: CountryRetrieveSchema
+    genres: List[GenreRetrieveSchema]
+    actors: List[ActorRetrieveSchema]
+    languages: List[LanguageRetrieveSchema]
 
     class Config:
         from_attributes = True

@@ -175,12 +175,8 @@ async def get_movies(
 #     await db.commit()
 #     await db.refresh(db_film)
 #     return db_film
-#
-# async def delete_film(db: AsyncSession, film_id: int):
-#     result = await db.execute(select(Film).where(Film.id == film_id))
-#     db_film = result.scalar_one_or_none()
-#     if not db_film:
-#         return None
-#     await db.delete(db_film)
-#     await db.commit()
-#     return db_film
+
+
+async def remove_movie(db: AsyncSession, db_movie: MovieModel):
+    await db.delete(db_movie)
+    await db.commit()

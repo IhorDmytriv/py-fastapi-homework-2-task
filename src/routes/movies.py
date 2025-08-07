@@ -1,7 +1,8 @@
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import ValidationError
+from starlette.responses import JSONResponse
 
-from crud import get_movies, create_movie, get_movie_by_id
+from crud import get_movies, create_movie, get_movie_by_id, remove_movie
 from routes.dependencies import PaginationDep, SessionDep
 from schemas.movies import MovieListResponseSchema, MovieCreateSchema, MovieDetailSchema
 
@@ -42,3 +43,13 @@ async def retrieve_movie(movie_id: int, db: SessionDep):
     if not db_movie:
         raise HTTPException(status_code=404, detail="Movie with the given ID was not found.")
     return db_movie
+
+
+@router.delete("/movies/{movie_id}/", status_code=204)
+async def delete_movie(movie_id: int, db: SessionDep):
+    db_movie = await get_movie_by_id(movie_id=movie_id, db=db)
+    if not db_movie:
+        raise HTTPException(status_code=404, detail="Movie with the given ID was not found.")
+
+    await remove_movie(db_movie=db_movie, db=db)
+    return JSONResponse(status_code=204, content=None)

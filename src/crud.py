@@ -1,23 +1,116 @@
-from fastapi import Query, Depends, Request
+from fastapi import Query, Depends, Request, HTTPException
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
+from sqlalchemy.orm import selectinload
 
-from database import get_db, MovieModel
+from database import get_db
+from database.models import CountryModel, MovieModel, GenreModel, ActorModel, LanguageModel
 from schemas import MovieListResponseSchema
-from schemas.movies import MovieListItemSchema
+from schemas.movies import MovieListItemSchema, MovieCreateSchema, MovieDetailSchema
 
 
-# async def create_film(db: AsyncSession, film: FilmCreate):
-#     new_film = Film(**film.dict())
-#     db.add(new_film)
-#     await db.commit()
-#     await db.refresh(new_film)
-#     return new_film
+async def get_or_create_country(country_code: str, db: AsyncSession, country_name: str = None) -> CountryModel:
+    stmt = select(CountryModel).where(CountryModel.code == country_code)
+    result = await db.execute(stmt)
+    country_db = result.scalar_one_or_none()
+
+    if not country_db:
+        country_db = CountryModel(code=country_code, name=country_name)
+        db.add(country_db)
+        await db.commit()
+        await db.refresh(country_db)
+    return country_db
+
+
+async def get_or_create_genre(genre_name: str, db: AsyncSession) -> GenreModel:
+    stmt = select(GenreModel).where(GenreModel.name == genre_name)
+    result = await db.execute(stmt)
+    genre_db = result.scalar_one_or_none()
+
+    if not genre_db:
+        genre_db = GenreModel(name=genre_name)
+        db.add(genre_db)
+        await db.commit()
+        await db.refresh(genre_db)
+    return genre_db
+
+
+async def get_or_create_actor(actor_name: str, db: AsyncSession) -> ActorModel:
+    stmt = select(ActorModel).where(ActorModel.name == actor_name)
+    result = await db.execute(stmt)
+    actor_db = result.scalar_one_or_none()
+    if not actor_db:
+        actor_db = ActorModel(name=actor_name)
+        db.add(actor_db)
+        await db.commit()
+        await db.refresh(actor_db)
+    return actor_db
+
+
+async def get_or_create_language(language_name: str, db: AsyncSession) -> LanguageModel:
+    stmt = select(LanguageModel).where(LanguageModel.name == language_name)
+    result = await db.execute(stmt)
+    language_db = result.scalar_one_or_none()
+    if not language_db:
+        language_db = LanguageModel(name=language_name)
+        db.add(language_db)
+        await db.commit()
+        await db.refresh(language_db)
+    return language_db
+
+
+async def create_movie(db: AsyncSession, movie: MovieCreateSchema):
+    country = await get_or_create_country(movie.country, db)
+    genres = [await get_or_create_genre(genre_name=genre_name, db=db) for genre_name in movie.genres]
+    actors = [await get_or_create_actor(actor_name=actor_name, db=db) for actor_name in movie.actors]
+    languages = [await get_or_create_language(language_name=language_name, db=db) for language_name in movie.languages]
+
+    new_movie = MovieModel(
+        name=movie.name,
+        date=movie.date,
+        score=movie.score,
+        overview=movie.overview,
+        status=movie.status,
+        budget=movie.budget,
+        revenue=movie.revenue,
+        country_id=country.id,
+        country=country,
+        genres=genres,
+        actors=actors,
+        languages=languages
+    )
+
+    try:
+        db.add(new_movie)
+        await db.commit()
+    except IntegrityError:
+        await db.rollback()
+        raise HTTPException(
+            status_code=409,
+            detail=f"A movie with the name '{new_movie.name}' and release date '{new_movie.date}' already exists."
+        )
+
+    stmt = (
+        select(MovieModel)
+        .options(
+            selectinload(MovieModel.country),
+            selectinload(MovieModel.genres),
+            selectinload(MovieModel.actors),
+            selectinload(MovieModel.languages),
+        )
+        .where(MovieModel.id == new_movie.id)
+    )
+    result = await db.execute(stmt)
+    new_movie_with_relations = result.scalar_one()
+
+    return new_movie_with_relations
 
 # async def get_film(db: AsyncSession, film_id: int):
 #     result = await db.execute(select(Film).where(Film.id == film_id))
 #     film = result.scalar_one_or_none()
 #     return film
+
 
 async def get_movies(
         request: Request,

@@ -7,7 +7,7 @@ from sqlalchemy.orm import selectinload, joinedload
 from database import get_db
 from database.models import CountryModel, MovieModel, GenreModel, ActorModel, LanguageModel
 from schemas import MovieListResponseSchema
-from schemas.movies import MovieListItemSchema, MovieCreateSchema, MovieDetailSchema
+from schemas.movies import MovieListItemSchema, MovieCreateSchema, MovieUpdateSchema
 
 
 async def get_or_create_country(country_code: str, db: AsyncSession, country_name: str = None) -> CountryModel:
@@ -163,18 +163,14 @@ async def get_movies(
         total_items=total_items
     )
 
-# async def update_film(db: AsyncSession, film_id: int, film: FilmUpdate):
-#     result = await db.execute(select(Film).where(Film.id == film_id))
-#     db_film = result.scalar_one_or_none()
-#     if not db_film:
-#         return None
-#
-#     db_film.title = film.title
-#     db_film.genre = film.genre
-#     db_film.price = film.price
-#     await db.commit()
-#     await db.refresh(db_film)
-#     return db_film
+
+async def edit_movie(db: AsyncSession, db_movie: MovieModel, movie_update: MovieUpdateSchema) -> None:
+    update_data = movie_update.model_dump(exclude_unset=True, exclude_none=True)
+
+    for key, value in update_data.items():
+        setattr(db_movie, key, value)
+
+    await db.commit()
 
 
 async def remove_movie(db: AsyncSession, db_movie: MovieModel):

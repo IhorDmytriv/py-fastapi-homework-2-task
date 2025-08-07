@@ -37,8 +37,14 @@ class MovieCreateSchema(MovieBaseSchema):
     pass
 
 
-# class MovieUpdate(MovieCreate):
-#     id: int
+class MovieUpdateSchema(BaseModel):
+    name: Optional[str] = Field(default=None, max_length=255)
+    date: Optional[datetime.date] = Field(default=None, le=datetime.date.today() + datetime.timedelta(days=364))
+    score: Optional[float] = Field(default=None, ge=0, le=100)
+    overview: Optional[str] = Field(default=None)
+    status: Optional[MovieStatusEnum] = None
+    budget: Optional[float] = Field(default=None, ge=0)
+    revenue: Optional[float] = Field(default=None, ge=0)
 
 
 class MovieDetailSchema(MovieBaseSchema):

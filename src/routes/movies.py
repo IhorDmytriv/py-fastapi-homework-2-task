@@ -1,4 +1,5 @@
 from fastapi import APIRouter, HTTPException, Request
+from pydantic import ValidationError
 
 from crud import get_movies, create_movie
 from routes.dependencies import PaginationDep, SessionDep
@@ -8,23 +9,28 @@ router = APIRouter()
 
 
 @router.get("/movies/", response_model=MovieListResponseSchema)
-async def list_films(
+async def list_movies(
         request: Request,
         params: PaginationDep,
         db: SessionDep
 ):
-    films = await get_movies(
+    movies = await get_movies(
         request=request,
         page=params["page"],
         per_page=params["per_page"],
         db=db
     )
-    if not films:
+    if not movies:
         raise HTTPException(status_code=404, detail="No movies found.")
-    return films
+    return movies
 
 
 @router.post("/movies/", status_code=201, response_model=MovieDetailSchema)
-async def add_movie(movie: MovieCreateSchema, db: SessionDep):
+async def add_movie(movie_data: dict, db: SessionDep):
+    try:
+        movie = MovieCreateSchema(**movie_data)
+    except ValidationError:
+        raise HTTPException(status_code=400, detail="Invalid movie data")
+
     db_movie = await create_movie(movie=movie, db=db)
     return db_movie

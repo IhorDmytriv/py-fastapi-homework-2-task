@@ -1,7 +1,4 @@
 from fastapi import FastAPI
-from fastapi.exceptions import RequestValidationError
-
-from error_handlers import validation_exception_handler
 from routes import movie_router
 
 
@@ -10,7 +7,6 @@ app = FastAPI(
     description="Description of project"
 )
 
-app.add_exception_handler(RequestValidationError, validation_exception_handler)
 
 api_version_prefix = "/api/v1"
 

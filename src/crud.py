@@ -2,7 +2,7 @@ from fastapi import Query, Depends, Request, HTTPException
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
-from sqlalchemy.orm import selectinload
+from sqlalchemy.orm import selectinload, joinedload
 
 from database import get_db
 from database.models import CountryModel, MovieModel, GenreModel, ActorModel, LanguageModel
@@ -94,7 +94,7 @@ async def create_movie(db: AsyncSession, movie: MovieCreateSchema):
     stmt = (
         select(MovieModel)
         .options(
-            selectinload(MovieModel.country),
+            joinedload(MovieModel.country),
             selectinload(MovieModel.genres),
             selectinload(MovieModel.actors),
             selectinload(MovieModel.languages),
@@ -102,14 +102,25 @@ async def create_movie(db: AsyncSession, movie: MovieCreateSchema):
         .where(MovieModel.id == new_movie.id)
     )
     result = await db.execute(stmt)
-    new_movie_with_relations = result.scalar_one()
+    new_movie_with_relations = result.unique().scalar_one()
 
     return new_movie_with_relations
 
-# async def get_film(db: AsyncSession, film_id: int):
-#     result = await db.execute(select(Film).where(Film.id == film_id))
-#     film = result.scalar_one_or_none()
-#     return film
+
+async def get_movie_by_id(db: AsyncSession, movie_id: int):
+    stmt = (
+        select(MovieModel)
+        .options(
+            joinedload(MovieModel.country),
+            selectinload(MovieModel.genres),
+            selectinload(MovieModel.actors),
+            selectinload(MovieModel.languages),
+        )
+        .where(MovieModel.id == movie_id)
+    )
+    result = await db.execute(stmt)
+    db_movie = result.unique().scalar_one_or_none()
+    return db_movie
 
 
 async def get_movies(

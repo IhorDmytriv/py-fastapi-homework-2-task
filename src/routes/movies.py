@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import ValidationError
 
-from crud import get_movies, create_movie
+from crud import get_movies, create_movie, get_movie_by_id
 from routes.dependencies import PaginationDep, SessionDep
 from schemas.movies import MovieListResponseSchema, MovieCreateSchema, MovieDetailSchema
 
@@ -33,4 +33,12 @@ async def add_movie(movie_data: dict, db: SessionDep):
         raise HTTPException(status_code=400, detail="Invalid movie data")
 
     db_movie = await create_movie(movie=movie, db=db)
+    return db_movie
+
+
+@router.get("/movies/{movie_id}/", response_model=MovieDetailSchema)
+async def retrieve_movie(movie_id: int, db: SessionDep):
+    db_movie = await get_movie_by_id(movie_id=movie_id, db=db)
+    if not db_movie:
+        raise HTTPException(status_code=404, detail="Movie with the given ID was not found.")
     return db_movie

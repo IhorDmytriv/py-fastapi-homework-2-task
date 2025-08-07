@@ -2,7 +2,7 @@ from pydantic import BaseModel, constr
 
 
 class CountryBaseSchema(BaseModel):
-    code: constr(min_length=3, max_length=3, to_upper=True)
+    code: constr(min_length=2, max_length=3, to_upper=True)
     name: str | None = None
 
 

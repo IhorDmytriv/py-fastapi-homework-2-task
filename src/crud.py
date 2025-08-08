@@ -1,3 +1,5 @@
+import asyncio
+
 from fastapi import Query, Depends, Request, HTTPException
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -53,10 +55,20 @@ async def get_or_create_language(language_name: str, db: AsyncSession) -> Langua
 
 
 async def create_movie(db: AsyncSession, movie: MovieCreateSchema):
-    country = await get_or_create_country(movie.country, db)
-    genres = [await get_or_create_genre(genre_name=genre_name, db=db) for genre_name in movie.genres]
-    actors = [await get_or_create_actor(actor_name=actor_name, db=db) for actor_name in movie.actors]
-    languages = [await get_or_create_language(language_name=language_name, db=db) for language_name in movie.languages]
+    country_task = get_or_create_country(movie.country, db)
+    genres_task = asyncio.gather(
+        *[get_or_create_genre(genre_name=genre_name, db=db) for genre_name in movie.genres]
+    )
+    actors_task = asyncio.gather(
+        *[get_or_create_actor(actor_name=actor_name, db=db) for actor_name in movie.actors]
+    )
+    languages_task = asyncio.gather(
+        *[get_or_create_language(language_name=language_name, db=db) for language_name in movie.languages]
+    )
+
+    country, genres, actors, languages = await asyncio.gather(
+        country_task, genres_task, actors_task, languages_task
+    )
 
     new_movie = MovieModel(
         name=movie.name,

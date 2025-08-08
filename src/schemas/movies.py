@@ -1,8 +1,7 @@
 import datetime
 from typing import List, Optional
 
-from dateutil.relativedelta import relativedelta
-from pydantic import BaseModel, Field, constr, field_validator
+from pydantic import BaseModel, Field, constr
 
 from database.models import MovieStatusEnum
 from schemas.actors import ActorRetrieveSchema
@@ -23,14 +22,6 @@ class MovieBaseSchema(BaseModel):
     genres: Optional[List[str]]
     actors: Optional[List[str]]
     languages: Optional[List[str]]
-
-    @field_validator("date")
-    @classmethod
-    def validate_date(cls, value: datetime.date):
-        today = datetime.date.today()
-        if value > today + relativedelta(years=1):
-            raise ValueError("Date cannot be more than 1 year from today")
-        return value
 
 
 class MovieCreateSchema(MovieBaseSchema):

@@ -18,8 +18,6 @@ async def get_or_create_country(country_code: str, db: AsyncSession, country_nam
     if not country_db:
         country_db = CountryModel(code=country_code, name=country_name)
         db.add(country_db)
-        await db.commit()
-        await db.refresh(country_db)
     return country_db
 
 
@@ -31,8 +29,6 @@ async def get_or_create_genre(genre_name: str, db: AsyncSession) -> GenreModel:
     if not genre_db:
         genre_db = GenreModel(name=genre_name)
         db.add(genre_db)
-        await db.commit()
-        await db.refresh(genre_db)
     return genre_db
 
 
@@ -43,8 +39,6 @@ async def get_or_create_actor(actor_name: str, db: AsyncSession) -> ActorModel:
     if not actor_db:
         actor_db = ActorModel(name=actor_name)
         db.add(actor_db)
-        await db.commit()
-        await db.refresh(actor_db)
     return actor_db
 
 
@@ -55,8 +49,6 @@ async def get_or_create_language(language_name: str, db: AsyncSession) -> Langua
     if not language_db:
         language_db = LanguageModel(name=language_name)
         db.add(language_db)
-        await db.commit()
-        await db.refresh(language_db)
     return language_db
 
 

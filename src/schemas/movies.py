@@ -14,11 +14,11 @@ from schemas.languages import LanguageRetrieveSchema
 class MovieBaseSchema(BaseModel):
     name: str = Field(max_length=255)
     date: datetime.date = Field(le=datetime.date.today() + datetime.timedelta(days=364))
-    score: Optional[float] = Field(ge=0, le=100)
-    overview: Optional[str]
-    status: Optional[MovieStatusEnum]
-    budget: Optional[float] = Field(ge=0)
-    revenue: Optional[float] = Field(ge=0)
+    score: float = Field(ge=0, le=100)
+    overview: str
+    status: MovieStatusEnum
+    budget: float = Field(ge=0)
+    revenue: float = Field(ge=0)
     country: Optional[constr(min_length=3, max_length=3, to_upper=True)]
     genres: Optional[List[str]]
     actors: Optional[List[str]]

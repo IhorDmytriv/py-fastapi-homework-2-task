@@ -1,12 +1,11 @@
 import asyncio
 
-from fastapi import Query, Depends, Request, HTTPException
+from fastapi import Request, HTTPException
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 from sqlalchemy.orm import selectinload, joinedload
 
-from database import get_db
 from database.models import CountryModel, MovieModel, GenreModel, ActorModel, LanguageModel
 from schemas import MovieListResponseSchema
 from schemas.movies import MovieListItemSchema, MovieCreateSchema, MovieUpdateSchema
@@ -129,9 +128,9 @@ async def get_movie_by_id(db: AsyncSession, movie_id: int):
 
 async def get_movies(
         request: Request,
-        page: int = Query(1, ge=1),
-        per_page: int = Query(10, ge=1, le=20),
-        db: AsyncSession = Depends(get_db)
+        page: int,
+        per_page: int,
+        db: AsyncSession
 ):
 
     offset = (page - 1) * per_page

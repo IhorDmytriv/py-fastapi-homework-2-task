@@ -1,7 +1,7 @@
 import datetime
 from typing import List, Optional
 
-from pydantic import BaseModel, Field, constr
+from pydantic import BaseModel, Field, constr, field_validator
 
 from database.models import MovieStatusEnum
 from schemas.actors import ActorRetrieveSchema
@@ -12,7 +12,7 @@ from schemas.languages import LanguageRetrieveSchema
 
 class MovieBaseSchema(BaseModel):
     name: str = Field(max_length=255)
-    date: datetime.date = Field(le=datetime.date.today() + datetime.timedelta(days=364))
+    date: datetime.date
     score: float = Field(ge=0, le=100)
     overview: str
     status: MovieStatusEnum
@@ -23,6 +23,12 @@ class MovieBaseSchema(BaseModel):
     actors: Optional[List[str]]
     languages: Optional[List[str]]
 
+    @field_validator('date')
+    def validate_date_in_future(cls, value):
+        if value > datetime.date.today() + datetime.timedelta(days=364):
+            raise ValueError('date cannot be more than one year in the future')
+        return value
+
 
 class MovieCreateSchema(MovieBaseSchema):
     pass
@@ -30,7 +36,7 @@ class MovieCreateSchema(MovieBaseSchema):
 
 class MovieUpdateSchema(BaseModel):
     name: Optional[str] = Field(default=None, max_length=255)
-    date: Optional[datetime.date] = Field(default=None, le=datetime.date.today() + datetime.timedelta(days=364))
+    date: Optional[datetime.date] = Field(default=None)
     score: Optional[float] = Field(default=None, ge=0, le=100)
     overview: Optional[str] = Field(default=None)
     status: Optional[MovieStatusEnum] = None

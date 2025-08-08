@@ -19,7 +19,7 @@ class MovieBaseSchema(BaseModel):
     status: Optional[MovieStatusEnum]
     budget: Optional[float] = Field(ge=0)
     revenue: Optional[float] = Field(ge=0)
-    country: Optional[constr(min_length=2, max_length=3, to_upper=True)]
+    country: Optional[constr(min_length=3, max_length=3, to_upper=True)]
     genres: Optional[List[str]]
     actors: Optional[List[str]]
     languages: Optional[List[str]]

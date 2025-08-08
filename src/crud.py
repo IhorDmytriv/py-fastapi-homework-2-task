@@ -77,7 +77,6 @@ async def create_movie(db: AsyncSession, movie: MovieCreateSchema):
         status=movie.status,
         budget=movie.budget,
         revenue=movie.revenue,
-        country_id=country.id,
         country=country,
         genres=genres,
         actors=actors,

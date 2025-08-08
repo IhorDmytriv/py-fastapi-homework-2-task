@@ -7,6 +7,7 @@ from sqlalchemy import select, func
 from sqlalchemy.orm import selectinload, joinedload
 
 from database.models import CountryModel, MovieModel, GenreModel, ActorModel, LanguageModel
+from config.settings import api_version_prefix
 from schemas import MovieListResponseSchema
 from schemas.movies import MovieListItemSchema, MovieCreateSchema, MovieUpdateSchema
 
@@ -148,8 +149,8 @@ async def get_movies(
 
     full_path = request.url.path
 
-    if full_path.startswith("/api/v1"):
-        base_url = full_path[len("/api/v1"):]
+    if full_path.startswith(api_version_prefix):
+        base_url = full_path[len(api_version_prefix):]
     else:
         base_url = full_path
 
